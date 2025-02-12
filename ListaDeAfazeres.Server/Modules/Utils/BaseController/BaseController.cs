@@ -1,5 +1,4 @@
 ﻿using ListaDeAfazeres.Server.Modules.Utils.Service;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
