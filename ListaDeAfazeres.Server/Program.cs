@@ -1,7 +1,7 @@
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
 using ListaDeAfazeres.Server.Modules.Utils;
+using Microsoft.EntityFrameworkCore;
 using NetCore.AutoRegisterDi;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,8 +49,8 @@ app.Run();
 static void automaticallyRegisterServicesAndRepos(WebApplicationBuilder builder)
 {
     builder.Services.RegisterAssemblyPublicNonGenericClasses(
-        Assembly.GetExecutingAssembly()) 
-    .Where(c => c.Name.EndsWith("Repository") || c.Name.EndsWith("Service")) 
+        Assembly.GetExecutingAssembly())
+    .Where(c => c.Name.EndsWith("Repository") || c.Name.EndsWith("Service"))
     .AsPublicImplementedInterfaces();
 
 }

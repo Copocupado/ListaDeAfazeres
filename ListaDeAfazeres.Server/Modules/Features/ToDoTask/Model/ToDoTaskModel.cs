@@ -7,6 +7,8 @@ namespace ListaDeAfazeres.Server.Modules.Features.ToDoTask.Model
 {
     public class ToDoTaskModel : BaseModel
     {
+        public ToDoTaskModel() {}
+
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; private set; }
