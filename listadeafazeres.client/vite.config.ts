@@ -47,10 +47,10 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            '^/weatherforecast': {
-                target,
-                secure: false
-            }
+          '^/api': {
+            target: target,
+            secure: false
+          }
         },
         port: parseInt(env.DEV_SERVER_PORT || '52380'),
         https: {

@@ -1,13 +1,25 @@
-using ListaDeAfazeres.Server.Modules.Utils.Service;
-using ListaDeAfazeres.Server.Modules.Utils.Repository;
+using System.Reflection;
+using Microsoft.EntityFrameworkCore;
+using ListaDeAfazeres.Server.Modules.Utils;
+using NetCore.AutoRegisterDi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddScoped(typeof(BaseServicesMethods<>), typeof(BaseService<>));
-builder.Services.AddScoped(typeof(BaseRepositoryMethods<>), typeof(BaseRepository<>));
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddControllers();
+
+automaticallyRegisterServicesAndRepos(builder);
+
+// Busca por todos os controladores
+builder.Services.AddControllers()
+    .AddApplicationPart(typeof(Program).Assembly)
+    .AddControllersAsServices();
+
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -20,6 +32,8 @@ app.MapStaticAssets();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
@@ -31,3 +45,12 @@ app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
+
+static void automaticallyRegisterServicesAndRepos(WebApplicationBuilder builder)
+{
+    builder.Services.RegisterAssemblyPublicNonGenericClasses(
+        Assembly.GetExecutingAssembly()) 
+    .Where(c => c.Name.EndsWith("Repository") || c.Name.EndsWith("Service")) 
+    .AsPublicImplementedInterfaces();
+
+}

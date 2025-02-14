@@ -1,6 +1,8 @@
-﻿namespace ListaDeAfazeres.Server.Modules.Utils.Repository
+﻿
+namespace ListaDeAfazeres.Server.Modules.Utils.Repository
 {
-    public interface BaseRepositoryMethods<T> where T : class
+    public interface IBaseRepositoryMethods<T>
+        where T : class
     {
         Task<IEnumerable<T>> GetAllAsync();  
 

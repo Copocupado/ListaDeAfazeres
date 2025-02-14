@@ -1,6 +1,7 @@
 ﻿namespace ListaDeAfazeres.Server.Modules.Utils.Service
 {
-    public interface BaseServicesMethods<T>
+    public interface IBaseServicesMethods<T>
+        where T : class
     {
         Task<IEnumerable<T>> GetAllAsync();
 
@@ -8,7 +9,7 @@
 
         Task AddAsync(T entity);
 
-        Task Update(T entity);
+        Task UpdateAsync(T entity);
 
         Task DeleteAsync(object keyValues);
     }

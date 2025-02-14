@@ -62,16 +62,32 @@
             '$route': 'fetchData'
         },
         methods: {
-            async fetchData() {
-                this.post = null;
-                this.loading = true;
+          async fetchData() {
+            this.tasks = [];
+            this.loading = true;
 
-                var response = await fetch('weatherforecast');
-                if (response.ok) {
-                    this.post = await response.json();
-                    this.loading = false;
-                }
+            try {
+              const response = await fetch('/api/ToDoTask'); // ✅ Ensure correct API path
+
+              console.log("Raw response:", response); // ✅ Logs status, headers, etc.
+
+              const responseText = await response.text(); // ✅ Get response as text first
+              console.log("Raw Response Body:", responseText); // ✅ Check if it's HTML or JSON
+
+              if (!response.ok) {
+                console.error("Error Response:", response.status, response.statusText);
+                throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+              }
+
+              this.tasks = JSON.parse(responseText); // ✅ Now safely parse JSON
+              console.log("Parsed JSON:", this.tasks); // ✅ Log JSON output
+
+            } catch (error) {
+              console.error("Fetch failed:", error);
+            } finally {
+              this.loading = false;
             }
+          }
         },
     });
 </script>
