@@ -2,9 +2,11 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using ListaDeAfazeres.Server.Modules.Features.ToDoTask.DTOs;
 using ListaDeAfazeres.Server.Modules.Utils.Model;
+using TypeGen.Core.TypeAnnotations;
 
 namespace ListaDeAfazeres.Server.Modules.Features.ToDoTask.Model
 {
+    [ExportTsClass]
     public class ToDoTaskModel : BaseModel
     {
         public ToDoTaskModel() {}
@@ -26,7 +28,7 @@ namespace ListaDeAfazeres.Server.Modules.Features.ToDoTask.Model
 
         public override void UpdateFromDto(object updateValues)
         {
-            var dto = (ToDoTaskUpdateDto)updateValues;
+            var dto = (ToDoTaskPostDTO)updateValues;
 
             Title = dto.Title ?? Title;
 

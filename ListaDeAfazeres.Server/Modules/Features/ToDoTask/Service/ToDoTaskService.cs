@@ -5,7 +5,7 @@ using ListaDeAfazeres.Server.Modules.Utils.Service;
 
 namespace ListaDeAfazeres.Server.Modules.Features.ToDoTask.Service
 {
-    public class ToDoTaskService : BaseService<ToDoTaskModel, ToDoTaskUpdateDto>, IToDoTaskServiceMethods
+    public class ToDoTaskService : BaseService<ToDoTaskModel, ToDoTaskPostDTO>, IToDoTaskServiceMethods
     {
         public ToDoTaskService(IBaseRepositoryMethods<ToDoTaskModel> repository) : base(repository)
         {
