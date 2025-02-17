@@ -1,10 +1,11 @@
-﻿namespace ListaDeAfazeres.Server.Modules.Utils.Model
-{
+﻿using TypeGen.Core.TypeAnnotations;
 
-    // BaseModel serve para aplicar campos e métodos que todos os Models devem ter
+namespace ListaDeAfazeres.Server.Modules.Utils.Model
+{
+    [ExportTsClass(OutputDir = "/tests")]
     public abstract class BaseModel
     {
-        public abstract void UpdateFromDto(object updateValues);
+
     }
 
 }

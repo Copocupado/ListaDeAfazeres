@@ -89,10 +89,6 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Service
         {
             try
             {
-                var existingEntity = await _repository.GetByPrimaryKeyAsync(entity);
-                if (existingEntity == null)
-                    throw new BaseServiceException(OnEntityNotFoundException);
-
                 await _repository.Update(entity);
                 await _repository.SaveChangesAsync();
             }

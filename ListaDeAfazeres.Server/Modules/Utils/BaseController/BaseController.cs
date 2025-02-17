@@ -1,4 +1,5 @@
-﻿using ListaDeAfazeres.Server.Modules.Utils.Model;
+﻿using ListaDeAfazeres.Server.Modules.Features.ToDoTask.Model;
+using ListaDeAfazeres.Server.Modules.Utils.Model;
 using ListaDeAfazeres.Server.Modules.Utils.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,8 +7,9 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
 {
     [ApiController]
     [Route("api/[controller]")]
-    public abstract class BaseController<T, IdType, DTOType>(IBaseServicesMethods<T> service) : ControllerBase
-        where DTOType : notnull
+    public abstract class BaseController<T, IdType, UpdateDTOType, CreateDTOType>(IBaseServicesMethods<T> service) : ControllerBase
+        where CreateDTOType: notnull
+        where UpdateDTOType : notnull
         where IdType : notnull
         where T : BaseModel
     {
@@ -32,9 +34,9 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
         {
             try
             {
-                var entity = await _service.GetByPrimaryKeyAsync(id);
+                T? entity = await _service.GetByPrimaryKeyAsync(id);
                 if (entity == null)
-                    return NotFound("Tarefa não encontrada");
+                    return NotFound("Item não encontrado");
 
                 return Ok(entity);
             }
@@ -45,10 +47,12 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
         }
 
         [HttpPost]
-        public virtual async Task<ActionResult<T>> Create([FromBody] T newEntity)
+        public virtual async Task<ActionResult<T>> Create([FromBody] CreateDTOType createDto)
         {
             try
             {
+                T newEntity = GetModelFromCreateDTO(createDto);
+
                 await _service.AddAsync(newEntity);
                 return CreatedAtAction(nameof(Get), new { id = GetEntityId(newEntity) }, newEntity);
             }
@@ -73,17 +77,17 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromRoute] IdType id, [FromBody] DTOType modelToUpdate)
+        public async Task<IActionResult> Update([FromRoute] IdType id, [FromBody] UpdateDTOType modelToUpdate)
         {
             try
             {
-                T? existingTask = await _service.GetByPrimaryKeyAsync(id);
-                if (existingTask == null)
-                    return NotFound("Tarefa não encontrada");
+                T? existingEntity = await _service.GetByPrimaryKeyAsync(id);
+                if (existingEntity == null)
+                    return NotFound("Item não encontrado");
 
-                existingTask.UpdateFromDto(modelToUpdate);
-                await _service.UpdateAsync(existingTask);
-                return NoContent();
+                existingEntity = GetModelFromUpdateDTO(existingEntity, modelToUpdate);
+                await _service.UpdateAsync(existingEntity);
+                return CreatedAtAction(nameof(Get), new { id = GetEntityId(existingEntity) }, existingEntity);
             }
             catch (BaseServiceException ex)
             {
@@ -92,5 +96,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
         }
 
         protected abstract IdType GetEntityId(T entity);
+        protected abstract T GetModelFromUpdateDTO(T oldEntity, UpdateDTOType updateDTO);
+        protected abstract T GetModelFromCreateDTO(CreateDTOType createDTO);
     }
 }

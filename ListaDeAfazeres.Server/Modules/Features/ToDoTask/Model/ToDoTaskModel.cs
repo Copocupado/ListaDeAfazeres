@@ -11,6 +11,12 @@ namespace ListaDeAfazeres.Server.Modules.Features.ToDoTask.Model
     {
         public ToDoTaskModel() {}
 
+        public ToDoTaskModel(ToDoTaskCreateDTO dto)
+        {
+            Title = dto.Title;
+            MarkToDoTask(dto.isCompleted);
+        }
+
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; private set; }
@@ -24,18 +30,6 @@ namespace ListaDeAfazeres.Server.Modules.Features.ToDoTask.Model
         public void MarkToDoTask(bool isCompleted)
         {
             CompletedAt = isCompleted ? DateTime.UtcNow : null;
-        }
-
-        public override void UpdateFromDto(object updateValues)
-        {
-            var dto = (ToDoTaskPostDTO)updateValues;
-
-            Title = dto.Title ?? Title;
-
-            if (dto.TaskCompletionUpdate != null)
-            {
-                MarkToDoTask(dto.TaskCompletionUpdate.Value);
-            }
         }
     }
 }
