@@ -16,6 +16,15 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Service
         abstract public string OnOutOfBoundsFieldException { get; }
         abstract public string OnEntityNotFoundException { get; } 
 
+        public async Task<IEnumerable<T>> GetAllPaginatedAsync(int pageNumber, int pageSize)
+        {
+            if (pageSize <= 0 || pageNumber <= 0)
+            {
+                throw new BaseServiceException("Erro de paginação: número de páginas ou o tamanho da página não pode ser menor ou igual a 0");
+            }
+            return await _repository.GetAllPaginatedAsync(pageNumber, pageSize);
+        }
+
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _repository.GetAllAsync();
@@ -113,6 +122,37 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Service
             catch (SqlException ex) when (ex.Number == 53 || ex.Number == 18456 || ex.Number == 4060 || ex.Number == 10060)
             {
                 throw new BaseServiceException(OnCouldNotConnectToDatabaseException);
+            }
+        }
+
+        public async Task<int> CountAsync()
+        {
+            try
+            {
+                return await _repository.CountAsync();
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx)
+            {
+                switch (sqlEx.Number)
+                {
+                    case 547: 
+                        throw new BaseServiceException(OnForeignKeyException);
+                    case 2601: 
+                    case 2627:
+                        throw new BaseServiceException(OnUniqueConstraintException);
+                    case 8152:
+                        throw new BaseServiceException(OnOutOfBoundsFieldException);
+                    default:
+                        throw;
+                }
+            }
+            catch (SqlException ex) when (ex.Number == 53 || ex.Number == 18456 || ex.Number == 4060 || ex.Number == 10060)
+            {
+                throw new BaseServiceException(OnCouldNotConnectToDatabaseException);
+            }
+            catch (Exception ex)
+            {
+                throw new BaseServiceException($"Ocorreu um erro inesperado: {ex.Message}");
             }
         }
     }

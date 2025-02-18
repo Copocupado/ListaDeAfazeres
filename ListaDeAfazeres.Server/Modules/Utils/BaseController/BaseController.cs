@@ -8,19 +8,45 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
     [ApiController]
     [Route("api/[controller]")]
     public abstract class BaseController<T, IdType, UpdateDTOType, CreateDTOType>(IBaseServicesMethods<T> service) : ControllerBase
-        where CreateDTOType: notnull
+        where CreateDTOType : notnull
         where UpdateDTOType : notnull
         where IdType : notnull
         where T : BaseModel
     {
         protected readonly IBaseServicesMethods<T> _service = service;
 
-        [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<T>>> GetAll()
+        /*[HttpGet]
+        public virtual async Task<ActionResult<PaginationModel<T>>> GetAllPaginated([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var entities = await _service.GetAllAsync();
+                IEnumerable<T> entities = await _service.GetAllPaginatedAsync(pageNumber, pageSize);
+
+                int totalCount = await _service.CountAsync();
+
+                var result = new PaginationModel<T>
+                {
+                    Items = entities,
+                    TotalCount = totalCount,
+                    PageSize = pageSize,
+                    CurrentPage = pageNumber
+                };
+                return Ok(result);
+            }
+            catch (BaseServiceException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }*/
+
+
+        [HttpGet]
+        public virtual async Task<ActionResult<PaginationModel<T>>> GetAllAsync()
+        {
+            try
+            {
+                IEnumerable<T> entities = await _service.GetAllAsync();
+
                 return Ok(entities);
             }
             catch (BaseServiceException ex)
@@ -28,6 +54,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
                 return BadRequest(new { message = ex.Message });
             }
         }
+
 
         [HttpGet("{id}")]
         public virtual async Task<ActionResult<T>> Get([FromRoute] IdType id)

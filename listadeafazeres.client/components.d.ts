@@ -10,6 +10,8 @@ declare module 'vue' {
     AlertDialog: typeof import('./src/components/dialogs/alertDialog.vue')['default']
     Filter: typeof import('./src/components/utils/filter.vue')['default']
     InsertOrEditTask: typeof import('./src/components/dialogs/ToDoTask/insertOrEditTask.vue')['default']
+    Paginator: typeof import('primevue/paginator')['default']
+    ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Sort: typeof import('./src/components/utils/sort.vue')['default']
