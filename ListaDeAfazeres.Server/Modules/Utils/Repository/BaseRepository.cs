@@ -14,6 +14,11 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Repository
             _dbSet = _context.Set<T>();
         }
 
+        public async Task<IEnumerable<T>> GetAllPaginatedAsync(int pageNumber, int pageSize) => await _dbSet
+                        .Skip((pageNumber - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
+
         public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
 
         public async Task<T?> GetByPrimaryKeyAsync(object keyValues) => await _dbSet.FindAsync(keyValues);
@@ -29,5 +34,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Repository
         public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
 
         public async Task Update(T entity) => _dbSet.Update(entity);
+
+        public async Task<int> CountAsync() => await _dbSet.CountAsync();
     }
 }

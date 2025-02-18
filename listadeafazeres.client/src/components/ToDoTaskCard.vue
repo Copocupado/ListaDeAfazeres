@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { showSuccessToast, showErrorToast } from '@/services/myToastService';
+import { showToast } from '@/services/myToastService';
 
 import Card from 'primevue/card';
 import Button from 'primevue/button';
@@ -93,14 +93,14 @@ async function updateTask(
     await taskStore.updateTask(props.toDoTask.id, dto);
 
     if (newTitle !== oldTitle) {
-      showSuccessToast('Sucesso ao editar!', 'Tarefa editada com sucesso!');
+      showToast('success', 'Sucesso ao editar!', 'Tarefa editada com sucesso!');
     }
   } catch (e) {
     isCompleted.value = props.toDoTask.completedAt !== null;
     if (e instanceof Error) {
-      showErrorToast('Erro ao atualizar tarefa', e.message);
+      showToast('error', 'Erro ao atualizar tarefa', e.message);
     } else {
-      showErrorToast('Erro desconhecido', 'Ocorreu um erro inesperado.');
+      showToast('error', 'Erro desconhecido', 'Ocorreu um erro inesperado.');
     }
   } finally {
     if (callback) {
@@ -113,12 +113,12 @@ async function handleDeleteRequest(didUserConfirm: boolean) {
   try {
     if (!didUserConfirm) return;
     await taskStore.removeTask(props.toDoTask.id);
-    showSuccessToast('Sucesso ao excluir!', 'Tarefa excluída com sucesso!');
+    showToast('success', 'Sucesso ao excluir!', 'Tarefa excluída com sucesso!');
   } catch (e) {
     if (e instanceof Error) {
-      showErrorToast('Erro ao excluir tarefa', e.message);
+      showToast('error', 'Erro ao excluir tarefa', e.message);
     } else {
-      showErrorToast('Erro desconhecido', 'Ocorreu um erro inesperado.');
+      showToast('error', 'Erro desconhecido', 'Ocorreu um erro inesperado.');
     }
   }
 }

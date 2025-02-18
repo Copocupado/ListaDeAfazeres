@@ -42,7 +42,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useToDoTaskStore, ToDoTaskDTO } from '@/stores/ToDoTaskStore';
-import { showSuccessToast, showErrorToast } from '@/services/myToastService';
+import { showToast } from '@/services/myToastService';
 import FilterPopover from '@/components/utils/filter.vue';
 import SortPopover from '@/components/utils/sort.vue';
 import type { FilterCriteria } from '@/models/utils/services/filterService';
@@ -81,10 +81,10 @@ async function createTask(newTitle: string, callback?: () => void) {
   try {
     const dto = new ToDoTaskDTO(newTitle, false);
     await taskStore.addTask(dto);
-    showSuccessToast('Sucesso!', 'Tarefa adicionada!');
+    showToast('success', 'Sucesso!', 'Tarefa adicionada!');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Um erro desconhecido ocorreu!';
-    showErrorToast('Erro ao criar uma nova tarefa!', message);
+    showToast('error', 'Erro ao criar uma nova tarefa!', message);
   } finally {
     if (callback) {
       callback();

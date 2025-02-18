@@ -2,7 +2,7 @@ export function sortItems<T>(
   items: T[],
   key: keyof T,
   order: SortOrder = "asc",
-  customOrder?: T[keyof T][]
+  customOrder?: T[keyof T][],
 ): T[] {
   return [...items].sort((a, b) => {
     const valueA = a[key];
@@ -27,5 +27,5 @@ export function sortItems<T>(
   });
 }
 export interface SortCriteria {
-  option: SortOrder | undefined | null;
+  option: SortOrder | null;
 }

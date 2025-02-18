@@ -10,35 +10,57 @@
   }"
   />
   <ToDoTaskPageHeader/>
-  <div class="flex flex-col gap-2">
+  <div class="flex flex-col items-center justify-center text-gray-500 !mt-10">
+    <ProgressSpinner v-if="fetchingTasks" style="width: 50px; height: 50px" strokeWidth="8" fill="transparent"
+    animationDuration=".5s" aria-label="Custom ProgressSpinner" />
+    <div v-else v-if="areTasksEmpty" class="flex flex-col items-center justify-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+      </svg>
+      <p class="text-xl">Nenhuma tarefa encontrada</p>
+    </div>
+  </div>
+  <div class="flex flex-col gap-2" >
     <ToDoTaskCard
-      v-for="item in tasks"
+      v-for="item in store.tasks"
       :key="item.id"
       :to-do-task="item"
     />
   </div>
+  <!--<Paginator class="!bg-inherit mt-10" :first="(currentPage - 1) * pageSize" :rows="pageSize" :totalRecords="store.localTasks?.totalCount" :rowsPerPageOptions="[5, 10, 15]" @page="onPageChange"></Paginator>-->
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useToDoTaskStore } from '@/stores/ToDoTaskStore';
 
 import ToDoTaskCard from './components/ToDoTaskCard.vue';
 import ToDoTaskPageHeader from './components/page_headers/toDoTaskPageHeader.vue';
+import { showToast } from './services/myToastService';
 
 const store = useToDoTaskStore();
-const tasks = computed(() => store.tasks);
+const areTasksEmpty = computed(() => {
+  return store.tasks.length <= 0
+});
 
-
+const fetchingTasks = ref(false)
 onMounted(async () => {
   try {
+    fetchingTasks.value = true
     await store.fetchAll();
+    console.log(store.tasks)
   } catch (error) {
-    console.error('Failed to fetch items:', error);
+    showToast('error', 'Erro ao buscar suas tarefas!', error)
+  } finally {
+    fetchingTasks.value = false
   }
 });
+
+
 </script>
 
 <style scoped>
-/* Your component styles here */
+:deep(.p-paginator) {
+  background-color: inherit;
+}
 </style>
