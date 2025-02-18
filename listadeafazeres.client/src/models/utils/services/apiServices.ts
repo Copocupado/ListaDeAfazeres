@@ -5,7 +5,7 @@ class ServiceError extends Error {
   }
 }
 
-class Services<Model, DTO, IdType> {
+class ApiServices<Model, DTO, IdType> {
   private apiPath: string;
   private createModel: ModelFactory<Model>;
 
@@ -31,9 +31,18 @@ class Services<Model, DTO, IdType> {
       return await response.json();
     } catch (error) {
       if (error instanceof Error) {
-        throw new ServiceError(`Request failed: ${error.message}`);
+        const regex = /(\{.*\})/;
+        const match = error.message.match(regex);
+        if (match && match[0]) {
+          const jsonPart = JSON.parse(match[0]);
+          throw new ServiceError(`Chamada falhou: ${jsonPart.message}`);
+        } else {
+          throw new ServiceError(`Chamada falhou: ${error.message}`);
+        }
       }
-      throw new ServiceError('An unknown error occurred.');
+      else {
+        throw new ServiceError('Um erro desconhecido occoreu!');
+      }
     }
   }
 
@@ -77,4 +86,4 @@ class Services<Model, DTO, IdType> {
   }
 }
 
-export { Services, ServiceError };
+export { ApiServices, ServiceError };

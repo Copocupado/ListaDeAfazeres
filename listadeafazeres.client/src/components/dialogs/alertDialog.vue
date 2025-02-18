@@ -40,10 +40,8 @@
   });
   const emit = defineEmits(['update:visible', 'response']);
   
-  // Create a local reactive variable for visibility.
   const localVisible = ref(props.visible);
   
-  // Sync local state with parent prop.
   watch(
     () => props.visible,
     (newVal) => {
@@ -51,7 +49,6 @@
     }
   );
   
-  // Emit changes from local state back to the parent.
   watch(localVisible, (newVal) => {
     emit('update:visible', newVal);
   });

@@ -1,6 +1,8 @@
 // global.d.ts
-export {};
+export {}
 
 declare global {
-    type ModelFactory<Model> = (data: any) => Model;
+  type ModelFactory<Model> = (data: any) => Model
+  type SortOrder = 'asc' | 'desc' | 'custom'
+  type ComparisonOperator = 'equals' | 'notEquals' | 'greaterThan' | 'lessThan' | 'includes'
 }
