@@ -15,7 +15,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
     {
         protected readonly IBaseServicesMethods<T> _service = service;
 
-        [HttpGet]
+        [HttpGet("paginated")]
         public virtual async Task<ActionResult<PaginationModel<T>>> GetAllPaginated(
             [FromQuery] int? pageNumber,
             [FromQuery] int? pageSize)
@@ -45,7 +45,8 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
         }
 
 
-        [HttpGet]
+        [HttpGet("all")]
+
         public virtual async Task<ActionResult<PaginationModel<T>>> GetAllAsync()
         {
             try

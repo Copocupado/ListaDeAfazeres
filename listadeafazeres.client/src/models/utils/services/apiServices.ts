@@ -18,8 +18,8 @@ export interface PagedResult<T> {
   totalPages: number;
 }
 class ApiServices<Model, DTO, IdType> {
-  private apiPath: string;
-  private createModel: ModelFactory<Model>;
+  readonly apiPath: string;
+  readonly createModel: ModelFactory<Model>;
 
   constructor(relativeApiRoute: string, createModel: ModelFactory<Model>) {
     this.apiPath = `/api/${relativeApiRoute}`;
@@ -64,7 +64,7 @@ class ApiServices<Model, DTO, IdType> {
   }
 
   public async fetchAll(): Promise<Model[]> {
-    const data = await this.request<any[]>();
+    const data = await this.request<any[]>({ urlParams: "all" });
     if (data == null) return [];
     return data.map((item: any) => this.createModel(item));
   }
