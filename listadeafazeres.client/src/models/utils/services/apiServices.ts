@@ -63,10 +63,21 @@ class ApiServices<Model, DTO, IdType> {
     }
   }
 
+  public async fetchAllPaginated(
+    currentPage: number,
+    pageSize: number,
+  ): Promise<PagedResult<Model>> {
+    const data = await this.request<PagedResult<any>>({
+      urlParams: `paginated?pageNumber=${currentPage}&pageSize=${pageSize}`,
+    });
+    data.items = data.items.map((item) => this.createModel(item));
+    return data;
+  }
+
   public async fetchAll(): Promise<Model[]> {
     const data = await this.request<any[]>({ urlParams: "all" });
     if (data == null) return [];
-    return data.map((item: any) => this.createModel(item));
+    return data.map((item) => this.createModel(item));
   }
 
   public async create(data: Partial<DTO>): Promise<Model> {
