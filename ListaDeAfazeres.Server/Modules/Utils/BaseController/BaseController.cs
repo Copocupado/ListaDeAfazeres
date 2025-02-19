@@ -15,29 +15,34 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
     {
         protected readonly IBaseServicesMethods<T> _service = service;
 
-        /*[HttpGet]
-        public virtual async Task<ActionResult<PaginationModel<T>>> GetAllPaginated([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        [HttpGet]
+        public virtual async Task<ActionResult<PaginationModel<T>>> GetAllPaginated(
+            [FromQuery] int? pageNumber,
+            [FromQuery] int? pageSize)
         {
             try
             {
-                IEnumerable<T> entities = await _service.GetAllPaginatedAsync(pageNumber, pageSize);
+                int actualPageNumber = pageNumber ?? 1;
+                int actualPageSize = pageSize ?? 10;
 
+                IEnumerable<T> entities = await _service.GetAllPaginatedAsync(actualPageNumber, actualPageSize);
                 int totalCount = await _service.CountAsync();
 
                 var result = new PaginationModel<T>
                 {
                     Items = entities,
                     TotalCount = totalCount,
-                    PageSize = pageSize,
-                    CurrentPage = pageNumber
+                    PageSize = actualPageSize,
+                    CurrentPage = actualPageNumber
                 };
+
                 return Ok(result);
             }
             catch (BaseServiceException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
-        }*/
+        }
 
 
         [HttpGet]
