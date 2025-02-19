@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 // dotnet ef migrations add modelsUpdate -> Cria as tabelas no banco de dados mas não aplica as alterações
 // dotnet ef database update -> Aplica as alterações
 
-namespace ListaDeAfazeres.Server.Modules.Utils
+namespace ListaDeAfazeres.Server.Migrations
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
@@ -23,8 +23,11 @@ namespace ListaDeAfazeres.Server.Modules.Utils
             // *** ToDoTask *** //
 
             modelBuilder.Entity<ToDoTaskModel>()
-                .HasIndex(t => t.Title)  
+                .HasIndex(t => t.Title)
                 .IsUnique(); // index que evita duplicação de tarefas com o exato mesmo título
+
+            modelBuilder.Entity<ToDoTaskModel>()
+                .HasIndex(t => t.CreatedAt); // agiliza na busca por tarefas
 
             // *** ToDoTask *** //
         }

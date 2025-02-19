@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { reactive, computed, ref } from "vue";
 import { ToDoTaskModel } from "@/models/ToDoTask/ToDoTaskModel";
-import { ApiServices } from "@/models/utils/services/apiServices";
+import { ApiServices, type PagedResult } from "@/models/utils/services/apiServices";
 import { filterItems, type FilterCriteria } from "@/models/utils/services/filterService";
 import { sortItems, type SortCriteria } from "@/models/utils/services/sortServices";
 export class ToDoTaskDTO {
@@ -20,10 +20,12 @@ export const useToDoTaskStore = defineStore("toDoTask", () => {
   const currentFilterCriteria = ref<FilterCriteria | null>(null);
   const currentSortCriteria = ref<SortCriteria | null>(null);
 
+  const lastPaginatedResult = ref<PagedResult<ToDoTaskModel> | null>(null);
+
   const tasks = computed(() => {
     const arr = Array.from(localTasksMap.values());
     if (!isSortApplied.value) {
-      return arr.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      return sortArray(arr);
     }
     return arr;
   });
@@ -41,6 +43,10 @@ export const useToDoTaskStore = defineStore("toDoTask", () => {
     "ToDoTask",
     toDoTaskModelFactory,
   );
+
+  function sortArray(arr: ToDoTaskModel[]) {
+    return arr.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
 
   function assignNewMainValue(newTaskArray: ToDoTaskModel[]) {
     mainTasksMap.clear();
@@ -61,6 +67,26 @@ export const useToDoTaskStore = defineStore("toDoTask", () => {
     localTasksMap.clear();
     for (const [id, task] of mainTasksMap) {
       localTasksMap.set(id, task);
+    }
+  }
+
+  async function fetchPaginated(currentPage: number, pageSize: number) {
+    const oldData = new Map(mainTasksMap);
+    try {
+      const mainArr = sortArray(Array.from(mainTasksMap.values()));
+      if (tasks.value.length) {
+        const paginatedResult = await apiServices.fetchAllPaginated(currentPage, pageSize);
+        paginatedResult.items.forEach((taskData: ToDoTaskModel) => {
+          mainTasksMap.set(taskData.id, taskData);
+        });
+      }
+      assignNewLocalValue(paginatedResult.items);
+    } catch (e) {
+      mainTasksMap.clear();
+      for (const [id, task] of oldData) {
+        mainTasksMap.set(id, task);
+      }
+      resetLocalValue();
     }
   }
 

@@ -84,6 +84,7 @@
                 name="completionStatus"
                 v-model="completionStatus"
                 value="uncompleted"
+                @click="() => maybeResetRadioButton('uncompleted')"
               />
               <label for="uncompleted" class="ml-2">Apenas Não Concluídos</label>
             </div>
@@ -93,6 +94,7 @@
                 name="completionStatus"
                 v-model="completionStatus"
                 value="completed"
+                @click="() => maybeResetRadioButton('completed')"
               />
               <label for="completed" class="ml-2">Apenas Concluídos</label>
             </div>
@@ -106,7 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import Button from "primevue/button";
 import Popover from "primevue/popover";
 import DatePicker from "primevue/datepicker";
@@ -117,7 +119,7 @@ import { formatDateToPortuguese } from "@/models/utils/services/timeFormatterSer
 
 const popoverRef = ref<InstanceType<typeof Popover>>();
 const dateRange = ref<Date[] | null>(null);
-const titleFilter = ref<string>("");
+const titleFilter = ref<string | null>(null);
 const completionStatus = ref<string | null>(null);
 
 const emit = defineEmits<{
@@ -131,6 +133,7 @@ const props = defineProps<{
 
 function togglePopover(event: MouseEvent) {
   popoverRef.value?.toggle(event);
+  resetFilters()
 }
 
 function applyFilter() {
@@ -141,5 +144,19 @@ function applyFilter() {
   };
   emit("filterApplied", filterData);
   popoverRef.value?.hide();
+}
+
+function maybeResetRadioButton(radioButtonValue: string) {
+  if(completionStatus.value == radioButtonValue){
+    completionStatus.value = null
+  }
+  return
+}
+
+
+function resetFilters(){
+  dateRange.value = props.currentlyAppliedFilters?.dateRange ?? null
+  titleFilter.value = props.currentlyAppliedFilters?.title ?? null
+  completionStatus.value = props.currentlyAppliedFilters?.completionStatus ?? null
 }
 </script>

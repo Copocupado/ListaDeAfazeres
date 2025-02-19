@@ -3,7 +3,7 @@ using ListaDeAfazeres.Server.Modules.Features.ToDoTask.Model;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using FluentAssertions;
-using ListaDeAfazeres.Server.Modules.Utils;
+using ListaDeAfazeres.Server.Migrations;
 
 public class BaseRepositoryTests
 {

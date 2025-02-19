@@ -22,7 +22,7 @@ public class ToDoTaskControllerTests
     public async Task GetAll_Should_Return_Ok_With_Tasks()
     {
         var tasks = new List<ToDoTaskModel> { new() { Title = "Task 1" }, new() { Title = "Task 2" } };
-        _mockService.Setup(svc => svc.GetAllAsync()).ReturnsAsync(tasks);
+        _mockService.Setup(svc => svc.GetAllAsync(null)).ReturnsAsync(tasks);
 
         var result = await _controller.GetAllAsync();
 

@@ -25,7 +25,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
                 int actualPageNumber = pageNumber ?? 1;
                 int actualPageSize = pageSize ?? 10;
 
-                IEnumerable<T> entities = await _service.GetAllPaginatedAsync(actualPageNumber, actualPageSize);
+                IEnumerable<T> entities = await _service.GetAllPaginatedAsync(actualPageNumber, actualPageSize, DefaultOrderQuery());
                 int totalCount = await _service.CountAsync();
 
                 var result = new PaginationModel<T>
@@ -131,5 +131,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
         protected abstract IdType GetEntityId(T entity);
         protected abstract T GetModelFromUpdateDTO(T oldEntity, UpdateDTOType updateDTO);
         protected abstract T GetModelFromCreateDTO(CreateDTOType createDTO);
+
+        protected abstract Func<IQueryable<T>, IOrderedQueryable<T>>? DefaultOrderQuery();
     }
 }

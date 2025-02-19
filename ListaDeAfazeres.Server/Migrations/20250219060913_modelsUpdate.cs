@@ -10,13 +10,18 @@ namespace ListaDeAfazeres.Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-
+            migrationBuilder.CreateIndex(
+                name: "IX_ToDoTasks_CreatedAt",
+                table: "ToDoTasks",
+                column: "CreatedAt");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
+            migrationBuilder.DropIndex(
+                name: "IX_ToDoTasks_CreatedAt",
+                table: "ToDoTasks");
         }
     }
 }

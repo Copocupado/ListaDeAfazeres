@@ -1,4 +1,4 @@
-using ListaDeAfazeres.Server.Modules.Utils;
+using ListaDeAfazeres.Server.Migrations;
 using Microsoft.EntityFrameworkCore;
 using NetCore.AutoRegisterDi;
 using System.Reflection;

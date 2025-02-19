@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ListaDeAfazeres.Server.Migrations;
+using Microsoft.EntityFrameworkCore;
 
 namespace ListaDeAfazeres.Server.Modules.Utils.Repository
 {
@@ -14,12 +15,36 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Repository
             _dbSet = _context.Set<T>();
         }
 
-        public async Task<IEnumerable<T>> GetAllPaginatedAsync(int pageNumber, int pageSize) => await _dbSet
-                        .Skip((pageNumber - 1) * pageSize)
-                        .Take(pageSize)
-                        .ToListAsync();
+        public async Task<IEnumerable<T>> GetAllPaginatedAsync(
+            int pageNumber,
+            int pageSize,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
+        {
+            IQueryable<T> query = _dbSet;
 
-        public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+
+            return await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<T>> GetAllAsync(
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+
+            return await query.ToListAsync();
+        }
 
         public async Task<T?> GetByPrimaryKeyAsync(object keyValues) => await _dbSet.FindAsync(keyValues);
 

@@ -16,7 +16,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Service
         abstract public string OnOutOfBoundsFieldException { get; }
         abstract public string OnEntityNotFoundException { get; }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<IEnumerable<T>> GetAllAsync(Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
         {
             try
             {
@@ -49,7 +49,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Service
             }
         }
 
-        public async Task<IEnumerable<T>> GetAllPaginatedAsync(int pageNumber, int pageSize)
+        public async Task<IEnumerable<T>> GetAllPaginatedAsync(int pageNumber, int pageSize, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
         {
             if (pageSize <= 0 || pageNumber <= 0)
             {
