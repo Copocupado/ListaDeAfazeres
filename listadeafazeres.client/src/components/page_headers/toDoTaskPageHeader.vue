@@ -64,9 +64,7 @@ function handleFilter(filterData: FilterCriteria) {
     filterData.completionStatus
   );
 
-  if (isFilterApplied.value) {
-    taskStore.handleFilter(filterData);
-  }
+  taskStore.handleFilter(filterData);
 }
 
 function handleSort(sortData: SortCriteria) {
