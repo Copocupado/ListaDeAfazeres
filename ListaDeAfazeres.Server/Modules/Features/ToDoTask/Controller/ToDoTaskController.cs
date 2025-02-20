@@ -30,7 +30,7 @@ namespace ListaDeAfazeres.Server.Modules.Features.ToDoTask.Controller
             return entity.Id;
         }
 
-        protected override Func<IQueryable<ToDoTaskModel>, IOrderedQueryable<ToDoTaskModel>>? DefaultOrderQuery()
+        protected override Func<IQueryable<ToDoTaskModel>, IOrderedQueryable<ToDoTaskModel>> DefaultOrderQuery()
         {
             return q => q.OrderByDescending(item => item.CreatedAt);
         }

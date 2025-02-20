@@ -39,7 +39,7 @@
           </div>
         </div>
         <div class="col-span-4 flex justify-end">
-          <Checkbox v-model="isCompleted" binary size="large" @change="() => updateTask()" />
+          <Checkbox v-model="isCompleted" binary size="large" @change="() => debouncedUpdateTask()" />
         </div>
       </div>
     </template>
@@ -53,12 +53,14 @@
     :show-dialog="showEditTaskDialog"
     :initial-title="toDoTask.title"
     @dialog-close="showEditTaskDialog = false"
-    @dialog-confirmed="updateTask"
+    @dialog-confirmed="debouncedUpdateTask"
   />
 </template>
 
+
 <script setup lang="ts">
 import { ref } from 'vue';
+import { debounce } from 'lodash';
 import { showToast } from '@/services/myToastService';
 
 import Card from 'primevue/card';
@@ -83,14 +85,12 @@ const showEditTaskDialog = ref(false);
 
 const isCompleted = ref(props.toDoTask.completedAt !== null);
 
-async function updateTask(
-  newTitle: string = props.toDoTask.title,
-  callback?: () => void
-) {
+// Função debounced
+const debouncedUpdateTask = debounce(async (newTitle: string = props.toDoTask.title, callback?: () => void) => {
   try {
     const oldTitle = props.toDoTask.title;
     const dto = new ToDoTaskDTO(newTitle, isCompleted.value);
-    await taskStore.updateTask(props.toDoTask.id, dto);
+    await taskStore.tasks.updateEntity(props.toDoTask.id, dto);
 
     if (newTitle !== oldTitle) {
       showToast('success', 'Sucesso ao editar!', 'Tarefa editada com sucesso!');
@@ -107,12 +107,12 @@ async function updateTask(
       callback();
     }
   }
-}
+}, 1000); 
 
 async function handleDeleteRequest(didUserConfirm: boolean) {
   try {
     if (!didUserConfirm) return;
-    await taskStore.removeTask(props.toDoTask.id);
+    await taskStore.tasks.removeEntity(props.toDoTask.id);
     showToast('success', 'Sucesso ao excluir!', 'Tarefa excluída com sucesso!');
   } catch (e) {
     if (e instanceof Error) {
@@ -123,3 +123,4 @@ async function handleDeleteRequest(didUserConfirm: boolean) {
   }
 }
 </script>
+

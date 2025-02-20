@@ -22,12 +22,12 @@
   </div>
   <div class="flex flex-col gap-2" >
     <ToDoTaskCard
-      v-for="item in store.tasks"
+      v-for="item in store.tasks.entities"
       :key="item.id"
       :to-do-task="item"
     />
   </div>
-  <!--<Paginator class="!bg-inherit mt-10" :first="(currentPage - 1) * pageSize" :rows="pageSize" :totalRecords="store.localTasks?.totalCount" :rowsPerPageOptions="[5, 10, 15]" @page="onPageChange"></Paginator>-->
+  <Paginator class="!bg-inherit mt-10" :rows="5" :totalRecords="totalRecords" :rowsPerPageOptions="[5, 10, 15]" @page="onPageChange"></Paginator>
 </template>
 
 <script setup lang="ts">
@@ -37,24 +37,31 @@ import { useToDoTaskStore } from '@/stores/ToDoTaskStore';
 import ToDoTaskCard from './components/ToDoTaskCard.vue';
 import ToDoTaskPageHeader from './components/page_headers/toDoTaskPageHeader.vue';
 import { showToast } from './services/myToastService';
+import type { PageState } from 'primevue';
 
 const store = useToDoTaskStore();
 const areTasksEmpty = computed(() => {
-  return store.tasks.length <= 0
+  return store.tasks.entities.length == 0
 });
+const totalRecords = computed(()=> {
+  return store.tasks.totalNumberOfEntities
+})
 
 const fetchingTasks = ref(false)
 onMounted(async () => {
   try {
     fetchingTasks.value = true
-    await store.fetchAll();
-    console.log(store.tasks)
+    await store.tasks.showPartiallyAvailableEntitiesInMainRepository(0, 5);
   } catch (error) {
     showToast('error', 'Erro ao buscar suas tarefas!', error)
   } finally {
     fetchingTasks.value = false
   }
 });
+
+async function onPageChange(pageState: PageState){
+  await store.tasks.showPartiallyAvailableEntitiesInMainRepository(pageState.page, pageState.rows);
+}
 
 
 </script>

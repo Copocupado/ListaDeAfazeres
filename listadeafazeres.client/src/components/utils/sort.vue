@@ -19,7 +19,7 @@
                 removable
                 @remove="() => {
                         const newSort: SortCriteria = {option: null}
-                        emit('sortRemoved', newSort)
+                        emit('sortChanged', newSort)
             }"/>
         </div>
         <Popover ref="popoverRef" placement="bottom">
@@ -63,7 +63,7 @@
     const popoverRef = ref<InstanceType<typeof Popover>>();
     const selectedOption = ref<SortOrder | null>(null);
 
-    const emit = defineEmits<{ (e: 'sortApplied', data: SortCriteria): void, (e: 'sortRemoved', data: SortCriteria): void }>();
+    const emit = defineEmits<{ (e: 'sortChanged', data: SortCriteria): void }>();
 
     function togglePopover(event: MouseEvent) {
         popoverRef.value?.toggle(event);
@@ -73,7 +73,7 @@
         const sortData: SortCriteria = {
             option: selectedOption.value,
         };
-        emit('sortApplied', sortData);
+        emit('sortChanged', sortData);
         popoverRef.value?.hide();
     }
 </script>

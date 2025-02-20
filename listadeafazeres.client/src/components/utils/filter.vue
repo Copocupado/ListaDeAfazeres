@@ -20,7 +20,7 @@
           removable
           @remove="() => {
                     const newFilters: FilterCriteria = {dateRange: null, title: props.currentlyAppliedFilters?.title ?? null, completionStatus: props.currentlyAppliedFilters?.completionStatus ?? null}
-                    emit('filterRemoved', newFilters)
+                    emit('filterChanged', newFilters)
                 }"
         />
         <Chip
@@ -30,7 +30,7 @@
           removable
           @remove="() => {
                  const newFilters: FilterCriteria = {dateRange: props.currentlyAppliedFilters?.dateRange ?? null, title: null, completionStatus: props.currentlyAppliedFilters?.completionStatus ?? null}
-                 emit('filterRemoved', newFilters)
+                 emit('filterChanged', newFilters)
             }"
         />
         <Chip
@@ -44,7 +44,7 @@
           removable
           @remove="() => {
                 const newFilters: FilterCriteria = {dateRange: props.currentlyAppliedFilters?.dateRange ?? null, title: props.currentlyAppliedFilters?.title ?? null, completionStatus: null}
-                emit('filterRemoved', newFilters)
+                emit('filterChanged', newFilters)
             }"
         />
       </div>
@@ -123,8 +123,7 @@ const titleFilter = ref<string | null>(null);
 const completionStatus = ref<string | null>(null);
 
 const emit = defineEmits<{
-  (e: "filterApplied", data: FilterCriteria): void;
-  (e: "filterRemoved", newFilterCriteria: FilterCriteria): void;
+  (e: "filterChanged", data: FilterCriteria): void;
 }>();
 const props = defineProps<{
   isActive: boolean;
@@ -142,7 +141,7 @@ function applyFilter() {
     title: titleFilter.value,
     completionStatus: completionStatus.value,
   };
-  emit("filterApplied", filterData);
+  emit("filterChanged", filterData);
   popoverRef.value?.hide();
 }
 

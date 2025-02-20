@@ -26,7 +26,7 @@ class ApiServices<Model, DTO, IdType> {
     this.createModel = createModel;
   }
 
-  private async request<T>(apiParameters?: ApiParameters): Promise<T> {
+  private async request<T>(apiParameters?: ApiParameters): Promise<T | null> {
     try {
       const finalApiUrl = apiParameters?.urlParams
         ? `${this.apiPath}/${apiParameters.urlParams}`
@@ -44,7 +44,9 @@ class ApiServices<Model, DTO, IdType> {
           `HTTP error ${response.status}: ${response.statusText}. ${errorText}`,
         );
       }
-
+      if (apiParameters?.options?.method == "DELETE") {
+        return null;
+      }
       return await response.json();
     } catch (error) {
       if (error instanceof Error) {
@@ -63,13 +65,14 @@ class ApiServices<Model, DTO, IdType> {
     }
   }
 
-  public async fetchAllPaginated(
+  public async fetchPaginated(
     currentPage: number,
     pageSize: number,
-  ): Promise<PagedResult<Model>> {
+  ): Promise<PagedResult<Model> | null> {
     const data = await this.request<PagedResult<any>>({
       urlParams: `paginated?pageNumber=${currentPage}&pageSize=${pageSize}`,
     });
+    if (data == null) return null;
     data.items = data.items.map((item) => this.createModel(item));
     return data;
   }
@@ -97,7 +100,7 @@ class ApiServices<Model, DTO, IdType> {
 
   public async read(id: IdType): Promise<Model> {
     const apiParams: ApiParameters = {
-      urlParams: `/${id}`,
+      urlParams: `${id}`,
     };
 
     const data = await this.request<any>(apiParams);
@@ -106,7 +109,7 @@ class ApiServices<Model, DTO, IdType> {
 
   public async update(id: IdType, data: Partial<DTO>): Promise<Model> {
     const apiParams: ApiParameters = {
-      urlParams: `/${id}`,
+      urlParams: `${id}`,
       options: {
         method: "PUT",
         headers: {
@@ -121,7 +124,7 @@ class ApiServices<Model, DTO, IdType> {
 
   public async delete(id: IdType): Promise<void> {
     const apiParams: ApiParameters = {
-      urlParams: `/${id}`,
+      urlParams: `${id}`,
       options: {
         method: "DELETE",
       },

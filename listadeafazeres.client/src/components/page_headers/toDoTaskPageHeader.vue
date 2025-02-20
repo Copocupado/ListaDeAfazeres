@@ -17,17 +17,15 @@
       <div class="w-full flex gap-2">
         <FilterPopover
           :is-applied="isFilterApplied"
-          @filterApplied="handleFilter"
-          @filterRemoved="taskStore.handleFilter"
-          :currentlyAppliedFilters="taskStore.currentFilterCriteria"
-          :isActive="taskStore.isFilterApplied"
+          @filterChanged="taskStore.tasks.handleFilter"
+          :currentlyAppliedFilters="taskStore.tasks.currentFilters"
+          :isActive="taskStore.tasks.currentFilters != null"
         />
         <SortPopover
           :is-applied="isSortApplied"
-          @sortApplied="handleSort"
-          @sortRemoved="taskStore.handleSort"
-          :currentlyAppliedSort="taskStore.currentSortCriteria"
-          :isActive="taskStore.isSortApplied"
+          @sortChanged="taskStore.tasks.handleSort"
+          :currentlyAppliedSort="taskStore.tasks.currentSorts"
+          :isActive="taskStore.tasks.currentSorts != null"
         />
       </div>
     </template>
@@ -57,28 +55,11 @@ const isFilterApplied = ref(false);
 const isSortApplied = ref(false);
 const showCreateDialog = ref(false);
 
-function handleFilter(filterData: FilterCriteria) {
-  isFilterApplied.value = !!(
-    (filterData.dateRange && filterData.dateRange.length) ||
-    filterData.title ||
-    filterData.completionStatus
-  );
-
-  taskStore.handleFilter(filterData);
-}
-
-function handleSort(sortData: SortCriteria) {
-  isSortApplied.value = !!sortData.option;
-
-  if (isSortApplied.value) {
-    taskStore.handleSort(sortData);
-  }
-}
 
 async function createTask(newTitle: string, callback?: () => void) {
   try {
     const dto = new ToDoTaskDTO(newTitle, false);
-    await taskStore.addTask(dto);
+    await taskStore.tasks.addEntity(dto);
     showToast('success', 'Sucesso!', 'Tarefa adicionada!');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Um erro desconhecido ocorreu!';

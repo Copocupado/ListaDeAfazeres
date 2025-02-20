@@ -51,7 +51,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
         {
             try
             {
-                IEnumerable<T> entities = await _service.GetAllAsync();
+                IEnumerable<T> entities = await _service.GetAllAsync(DefaultOrderQuery());
 
                 return Ok(entities);
             }
@@ -132,6 +132,6 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
         protected abstract T GetModelFromUpdateDTO(T oldEntity, UpdateDTOType updateDTO);
         protected abstract T GetModelFromCreateDTO(CreateDTOType createDTO);
 
-        protected abstract Func<IQueryable<T>, IOrderedQueryable<T>>? DefaultOrderQuery();
+        protected abstract Func<IQueryable<T>, IOrderedQueryable<T>> DefaultOrderQuery();
     }
 }

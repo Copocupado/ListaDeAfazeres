@@ -18,14 +18,10 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Repository
         public async Task<IEnumerable<T>> GetAllPaginatedAsync(
             int pageNumber,
             int pageSize,
-            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
+            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy)
         {
-            IQueryable<T> query = _dbSet;
 
-            if (orderBy != null)
-            {
-                query = orderBy(query);
-            }
+            var query = orderBy(_dbSet);
 
             return await query
                 .Skip((pageNumber - 1) * pageSize)
@@ -34,14 +30,9 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Repository
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(
-            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
+            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy)
         {
-            IQueryable<T> query = _dbSet;
-
-            if (orderBy != null)
-            {
-                query = orderBy(query);
-            }
+            var query = orderBy(_dbSet);
 
             return await query.ToListAsync();
         }

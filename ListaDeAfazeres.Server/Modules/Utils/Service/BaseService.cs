@@ -16,11 +16,11 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Service
         abstract public string OnOutOfBoundsFieldException { get; }
         abstract public string OnEntityNotFoundException { get; }
 
-        public async Task<IEnumerable<T>> GetAllAsync(Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
+        public async Task<IEnumerable<T>> GetAllAsync(Func<IQueryable<T>, IOrderedQueryable<T>> orderBy)
         {
             try
             {
-                return await _repository.GetAllAsync();
+                return await _repository.GetAllAsync(orderBy);
             }
             catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx)
             {
@@ -49,7 +49,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Service
             }
         }
 
-        public async Task<IEnumerable<T>> GetAllPaginatedAsync(int pageNumber, int pageSize, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null)
+        public async Task<IEnumerable<T>> GetAllPaginatedAsync(int pageNumber, int pageSize, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy)
         {
             if (pageSize <= 0 || pageNumber <= 0)
             {
@@ -58,7 +58,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.Service
 
             try
             {
-                return await _repository.GetAllPaginatedAsync(pageNumber, pageSize);
+                return await _repository.GetAllPaginatedAsync(pageNumber, pageSize, orderBy);
             }
             catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx)
             {
