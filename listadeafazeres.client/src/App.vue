@@ -10,48 +10,45 @@
   }"
   />
   <ToDoTaskPageHeader/>
-  <div class="flex flex-col items-center justify-center text-gray-500 !mt-10">
-    <ProgressSpinner v-if="fetchingTasks" style="width: 50px; height: 50px" strokeWidth="8" fill="transparent"
-    animationDuration=".5s" aria-label="Custom ProgressSpinner" />
-    <div v-else v-if="areTasksEmpty" class="flex flex-col items-center justify-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
-      </svg>
-      <p class="text-xl">Nenhuma tarefa encontrada</p>
+  <div class="!m-10">
+    <div class="flex flex-col items-center justify-center text-gray-500 !mt-10">
+      <ProgressSpinner v-if="fetchingTasks" style="width: 50px; height: 50px" strokeWidth="8" fill="transparent"
+      animationDuration=".5s" aria-label="Custom ProgressSpinner" />
+      <div v-else v-if="tasksState.areTasksEmpty" class="flex flex-col items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+        </svg>
+        <p class="text-xl">Nenhuma tarefa encontrada</p>
+      </div>
     </div>
+    <div class="flex flex-col gap-2" >
+      <ToDoTaskCard
+        v-for="item in tasksState.tasks"
+        :key="item.id"
+        :to-do-task="item"
+      />
+    </div>
+    <Paginator class="!bg-inherit mt-10" :rows="5" :totalRecords="tasksState.totalRecords" :rowsPerPageOptions="getRowsPerPage" @page="onPageChange"></Paginator>
   </div>
-  <div class="flex flex-col gap-2" >
-    <ToDoTaskCard
-      v-for="item in store.tasks.entities"
-      :key="item.id"
-      :to-do-task="item"
-    />
-  </div>
-  <Paginator class="!bg-inherit mt-10" :rows="5" :totalRecords="totalRecords" :rowsPerPageOptions="[5, 10, 15]" @page="onPageChange"></Paginator>
+
 </template>
 
 <script setup lang="ts">
 import { onMounted, computed, ref } from 'vue';
-import { useToDoTaskStore } from '@/stores/ToDoTaskStore';
+import { useToDoTaskState } from '@/stores/ToDoTaskStore';
 
 import ToDoTaskCard from './components/ToDoTaskCard.vue';
 import ToDoTaskPageHeader from './components/page_headers/toDoTaskPageHeader.vue';
 import { showToast } from './services/myToastService';
 import type { PageState } from 'primevue';
 
-const store = useToDoTaskStore();
-const areTasksEmpty = computed(() => {
-  return store.tasks.entities.length == 0
-});
-const totalRecords = computed(()=> {
-  return store.tasks.totalNumberOfEntities
-})
+const tasksState = useToDoTaskState();
 
 const fetchingTasks = ref(false)
 onMounted(async () => {
   try {
     fetchingTasks.value = true
-    await store.tasks.showPartiallyAvailableEntitiesInMainRepository(0, 5);
+    await tasksState.taskStore.showPartiallyAvailableEntitiesInMainRepository(0, 5);
   } catch (error) {
     showToast('error', 'Erro ao buscar suas tarefas!', error)
   } finally {
@@ -60,8 +57,16 @@ onMounted(async () => {
 });
 
 async function onPageChange(pageState: PageState){
-  await store.tasks.showPartiallyAvailableEntitiesInMainRepository(pageState.page, pageState.rows);
+  await tasksState.taskStore.showPartiallyAvailableEntitiesInMainRepository(pageState.page, pageState.rows);
 }
+
+const getRowsPerPage = computed(()=> {
+  const arr = [5, 10, 15]
+  if(tasksState.totalRecords > arr[arr.length - 1]){
+    arr.push(tasksState.totalRecords)
+  }
+  return arr;
+})
 
 
 </script>

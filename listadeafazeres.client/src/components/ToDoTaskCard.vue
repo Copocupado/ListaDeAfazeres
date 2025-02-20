@@ -67,8 +67,8 @@ import Card from 'primevue/card';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
 
-import { ToDoTaskModel } from '@/models/ToDoTask/ToDoTaskModel';
-import { useToDoTaskStore, ToDoTaskDTO } from '@/stores/ToDoTaskStore';
+import { ToDoTaskDTO, ToDoTaskModel } from '@/models/ToDoTask/ToDoTaskModel';
+import { useToDoTaskState } from '@/stores/ToDoTaskStore';
 
 import AlertDialog from './dialogs/alertDialog.vue';
 import InsertOrEditTask from './dialogs/ToDoTask/insertOrEditTask.vue';
@@ -78,7 +78,7 @@ const props = defineProps<{
   toDoTask: ToDoTaskModel;
 }>();
 
-const taskStore = useToDoTaskStore();
+const tasksState = useToDoTaskState();
 
 const showAlertDialogForDeletion = ref(false);
 const showEditTaskDialog = ref(false);
@@ -90,7 +90,7 @@ const debouncedUpdateTask = debounce(async (newTitle: string = props.toDoTask.ti
   try {
     const oldTitle = props.toDoTask.title;
     const dto = new ToDoTaskDTO(newTitle, isCompleted.value);
-    await taskStore.tasks.updateEntity(props.toDoTask.id, dto);
+    await tasksState.taskStore.updateEntity(props.toDoTask.id, dto);
 
     if (newTitle !== oldTitle) {
       showToast('success', 'Sucesso ao editar!', 'Tarefa editada com sucesso!');
@@ -112,7 +112,7 @@ const debouncedUpdateTask = debounce(async (newTitle: string = props.toDoTask.ti
 async function handleDeleteRequest(didUserConfirm: boolean) {
   try {
     if (!didUserConfirm) return;
-    await taskStore.tasks.removeEntity(props.toDoTask.id);
+    await tasksState.taskStore.removeEntity(props.toDoTask.id);
     showToast('success', 'Sucesso ao excluir!', 'Tarefa excluída com sucesso!');
   } catch (e) {
     if (e instanceof Error) {

@@ -14,3 +14,9 @@ export function toDoTaskModelFactory(data: any): ToDoTaskModel {
     data.completedAt ? new Date(data.completedAt) : null,
   );
 }
+export class ToDoTaskDTO {
+  constructor(
+    public title: string,
+    public isCompleted: boolean,
+  ) {}
+}

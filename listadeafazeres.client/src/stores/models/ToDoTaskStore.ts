@@ -1,6 +1,5 @@
-import { ToDoTaskModel } from "@/models/ToDoTask/ToDoTaskModel";
+import { ToDoTaskDTO, ToDoTaskModel } from "@/models/ToDoTask/ToDoTaskModel";
 import { BaseStoreModel } from "./utils/baseModel";
-import type { ToDoTaskDTO } from "../ToDoTaskStore";
 import { filterItems } from "@/models/utils/services/filterService";
 import { sortItems } from "@/models/utils/services/sortServices";
 
@@ -11,6 +10,7 @@ export class ToDoTaskStore extends BaseStoreModel<ToDoTaskModel, ToDoTaskDTO, nu
       (data: any) => new ToDoTaskModel(data.id, data.title, data.createdAt, data.completedAt),
     );
   }
+  // computed entities applies filtering and sorting to listToDisplayToUser
   protected defaultSortingFunction(items: ToDoTaskModel[]): ToDoTaskModel[] {
     return items.sort((a, b) => {
       const dateA = new Date(a.createdAt).getTime();
@@ -20,28 +20,23 @@ export class ToDoTaskStore extends BaseStoreModel<ToDoTaskModel, ToDoTaskDTO, nu
   }
   protected applyFilters(items: ToDoTaskModel[]): ToDoTaskModel[] {
     let filtered = items;
-    if (this.currentFilters != null && this.currentFilters.value != null) {
-      if (this.currentFilters.value.dateRange && this.currentFilters.value.dateRange.length === 2) {
+    if (this.currentFilters != null && this.currentFilters != null) {
+      if (this.currentFilters.dateRange && this.currentFilters.dateRange.length === 2) {
         filtered = filterItems(
           filtered,
           "createdAt",
           "greaterThan",
-          this.currentFilters.value.dateRange[0],
+          this.currentFilters.dateRange[0],
         );
-        filtered = filterItems(
-          filtered,
-          "createdAt",
-          "lessThan",
-          this.currentFilters.value.dateRange[1],
-        );
+        filtered = filterItems(filtered, "createdAt", "lessThan", this.currentFilters.dateRange[1]);
       }
-      if (this.currentFilters.value.title && this.currentFilters.value.title.trim() !== "") {
-        filtered = filterItems(filtered, "title", "includes", this.currentFilters.value.title);
+      if (this.currentFilters.title && this.currentFilters.title.trim() !== "") {
+        filtered = filterItems(filtered, "title", "includes", this.currentFilters.title);
       }
-      if (this.currentFilters.value.completionStatus) {
-        if (this.currentFilters.value.completionStatus === "completed") {
+      if (this.currentFilters.completionStatus) {
+        if (this.currentFilters.completionStatus === "completed") {
           filtered = filtered.filter((task) => task.completedAt !== null);
-        } else if (this.currentFilters.value.completionStatus === "uncompleted") {
+        } else if (this.currentFilters.completionStatus === "uncompleted") {
           filtered = filtered.filter((task) => task.completedAt === null);
         }
       }
@@ -51,8 +46,8 @@ export class ToDoTaskStore extends BaseStoreModel<ToDoTaskModel, ToDoTaskDTO, nu
 
   protected applySorts(items: ToDoTaskModel[]): ToDoTaskModel[] {
     let sortedItems = items;
-    if (this.currentSorts != null && this.currentSorts.value != null) {
-      sortedItems = sortItems(items, "title", this.currentSorts.value.option ?? undefined);
+    if (this.currentSorts != null && this.currentSorts != null) {
+      sortedItems = sortItems(items, "title", this.currentSorts.option ?? undefined);
     }
     return sortedItems;
   }
