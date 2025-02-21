@@ -56,7 +56,6 @@ const newTitle = ref(props.initialTitle);
 const localVisible = ref(props.showDialog);
 const isLoading = ref(false);
 
-// Create a computed schema that rebuilds when initialTitle changes.
 const schema = computed(() => {
   return yup.object().shape({
     title: yup
@@ -74,7 +73,6 @@ const schema = computed(() => {
   });
 });
 
-// Use a computed resolver so that it updates when the schema changes.
 const resolver = computed(() => yupResolver(schema.value));
 
 watch(

@@ -1,4 +1,12 @@
-﻿using ListaDeAfazeres.Server.Modules.Features.ToDoTask.Model;
+﻿/* Este código define uma classe abstrata 'BaseController' que serve como controlador base na arquitetura de três camadas de uma aplicação ASP.NET Core.
+ A arquitetura de três camadas é composta por:
+ 1. Camada de Apresentação (Controller): Responsável por lidar com as requisições HTTP e retornar respostas adequadas.
+ 2. Camada de Negócio (Service): Contém a lógica de negócios da aplicação.
+ 3. Camada de Dados (Repository): Gerencia o acesso e a persistência dos dados no banco de dados.
+ O 'BaseController' fornece operações CRUD genéricas e paginadas para entidades que herdam de 'BaseModel'.
+ Ele utiliza serviços que implementam a interface 'IBaseServicesMethods<T>' para realizar essas operações.*/
+
+using ListaDeAfazeres.Server.Modules.Features.ToDoTask.Model;
 using ListaDeAfazeres.Server.Modules.Utils.Model;
 using ListaDeAfazeres.Server.Modules.Utils.Service;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +15,21 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
 {
     [ApiController]
     [Route("api/[controller]")]
-    public abstract class BaseController<T, IdType, UpdateDTOType, CreateDTOType>(IBaseServicesMethods<T> service) : ControllerBase
+    public abstract class BaseController<T, IdType, UpdateDTOType, CreateDTOType> : ControllerBase
         where CreateDTOType : notnull
         where UpdateDTOType : notnull
         where IdType : notnull
         where T : BaseModel
     {
-        protected readonly IBaseServicesMethods<T> _service = service;
+        protected readonly IBaseServicesMethods<T> _service;
 
+        // Construtor que recebe uma implementação de 'IBaseServicesMethods<T>'.
+        protected BaseController(IBaseServicesMethods<T> service)
+        {
+            _service = service;
+        }
+
+        // Método para obter entidades de forma paginada.
         [HttpGet("paginated")]
         public virtual async Task<ActionResult<PaginationModel<T>>> GetAllPaginated(
             [FromQuery] int? pageNumber,
@@ -44,15 +59,13 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
             }
         }
 
-
+        // Método para obter todas as entidades.
         [HttpGet("all")]
-
-        public virtual async Task<ActionResult<PaginationModel<T>>> GetAllAsync()
+        public virtual async Task<ActionResult<IEnumerable<T>>> GetAllAsync()
         {
             try
             {
                 IEnumerable<T> entities = await _service.GetAllAsync(DefaultOrderQuery());
-
                 return Ok(entities);
             }
             catch (BaseServiceException ex)
@@ -61,7 +74,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
             }
         }
 
-
+        // Método para obter uma entidade específica pelo ID.
         [HttpGet("{id}")]
         public virtual async Task<ActionResult<T>> Get([FromRoute] IdType id)
         {
@@ -79,6 +92,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
             }
         }
 
+        // Método para criar uma nova entidade.
         [HttpPost]
         public virtual async Task<ActionResult<T>> Create([FromBody] CreateDTOType createDto)
         {
@@ -95,6 +109,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
             }
         }
 
+        // Método para deletar uma entidade pelo ID.
         [HttpDelete("{id}")]
         public virtual async Task<IActionResult> Delete([FromRoute] IdType id)
         {
@@ -109,6 +124,7 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
             }
         }
 
+        // Método para atualizar uma entidade existente.
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromRoute] IdType id, [FromBody] UpdateDTOType modelToUpdate)
         {
@@ -128,10 +144,10 @@ namespace ListaDeAfazeres.Server.Modules.Utils.BaseController
             }
         }
 
+        // Métodos abstratos que devem ser implementados nas classes derivadas para mapear DTOs para modelos e definir a ordenação padrão.
         protected abstract IdType GetEntityId(T entity);
         protected abstract T GetModelFromUpdateDTO(T oldEntity, UpdateDTOType updateDTO);
         protected abstract T GetModelFromCreateDTO(CreateDTOType createDTO);
-
         protected abstract Func<IQueryable<T>, IOrderedQueryable<T>> DefaultOrderQuery();
     }
 }

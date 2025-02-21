@@ -1,6 +1,10 @@
 ﻿using ListaDeAfazeres.Server.Modules.Features.ToDoTask.Model;
 using Microsoft.EntityFrameworkCore;
 
+// Este código define o contexto do banco de dados da aplicação "ListaDeAfazeres".
+// Ele configura a conexão com o banco de dados e mapeia a entidade ToDoTaskModel para a tabela correspondente.
+// Além disso, estabelece índices nos campos 'Title' e 'CreatedAt' para otimizar as consultas e garantir unicidade nos títulos das tarefas.
+
 // *** Comandos importantes *** //
 
 // dotnet ef migrations add modelsUpdate -> Cria as tabelas no banco de dados mas não aplica as alterações

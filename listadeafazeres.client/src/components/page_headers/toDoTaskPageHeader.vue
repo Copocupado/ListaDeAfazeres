@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { useToDoTaskState } from '@/stores/ToDoTaskStore';
+import { useToDoTaskState } from '@/stores/ToDoTaskState';
 import { showToast } from '@/services/myToastService';
 import FilterPopover from '@/components/utils/filter.vue';
 import SortPopover from '@/components/utils/sort.vue';

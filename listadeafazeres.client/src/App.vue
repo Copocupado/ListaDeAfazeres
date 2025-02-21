@@ -35,7 +35,7 @@
 
 <script setup lang="ts">
 import { onMounted, computed, ref } from 'vue';
-import { useToDoTaskState } from '@/stores/ToDoTaskStore';
+import { useToDoTaskState } from '@/stores/ToDoTaskState';
 
 import ToDoTaskCard from './components/ToDoTaskCard.vue';
 import ToDoTaskPageHeader from './components/page_headers/toDoTaskPageHeader.vue';
