@@ -1,5 +1,4 @@
 <template>
-  <!-- Sticky navbar: becomes fixed at the top once scrolled past -->
   <nav :class="[
     'sticky top-0 z-50 shadow-md transition-transform duration-300 ease-in-out',
     isNavbarVisible ? 'translate-y-0' : '-translate-y-full'
@@ -40,7 +39,7 @@
     </Menubar>
   </nav>
 
-  <!-- Dialog for adding/editing tasks remains unchanged -->
+  
   <InsertOrEditTask
     :show-dialog="showCreateDialog"
     @dialog-close="showCreateDialog = false"
