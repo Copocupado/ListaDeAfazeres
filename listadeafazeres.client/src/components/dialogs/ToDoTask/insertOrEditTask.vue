@@ -92,12 +92,11 @@ watch(
 async function onSubmit({ valid }: { valid: boolean }) {
   if (!valid) return;
   isLoading.value = true;
-  emit('dialogConfirmed', newTitle.value, () => handleClose());
-  isLoading.value = false;
-
+  emit('dialogConfirmed', newTitle.value, handleClose);
 }
 
 function handleClose() {
+  console.log('dialog closed')
   isLoading.value = false;
   emit('dialogClose');
 }

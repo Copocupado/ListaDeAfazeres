@@ -34,7 +34,7 @@
         </div>
         <div class="col-span-4 flex justify-end">
           <!-- Atualiza a tarefa imediatamente ao alterar o checkbox -->
-          <Checkbox v-model="isCompleted" binary size="large" @change="() => debouncedUpdateTask()" />
+          <Checkbox v-model="isCompleted" binary size="large" @click="debounceFunc"/>
         </div>
       </div>
     </template>
@@ -45,7 +45,7 @@
   <InsertOrEditTask :show-dialog="showEditTaskDialog"
                     :initial-title="toDoTask.title"
                     @dialog-close="showEditTaskDialog = false"
-                    @dialog-confirmed="() => debouncedUpdateTask" />
+                    @dialog-confirmed="updateFunction" />
 </template>
 
 <script setup lang="ts">
@@ -63,12 +63,13 @@
   import AlertDialog from './dialogs/alertDialog.vue';
   import InsertOrEditTask from './dialogs/ToDoTask/insertOrEditTask.vue';
   import { formatDateToPortuguese } from '@/models/utils/services/timeFormatterService';
+  import debounce from 'lodash/debounce';
 
   const props = defineProps<{
     toDoTask: ToDoTaskModel;
   }>();
 
-  const optimisticCompletedAt = ref(props.toDoTask.completedAt)
+  const optimisticCompletedAt = ref<Date | null>(props.toDoTask.completedAt)
 
   const tasksState = useToDoTaskState();
 
@@ -78,18 +79,22 @@
 
   const isCompleted = ref(props.toDoTask.completedAt !== null);
 
-  const debouncedUpdateTask = debounce(
-  async (...args) => {
-    const [newTitle = props.toDoTask.title, callback] = args;
-    try {
-      optimisticCompletedAt.value = new Date();
-      const oldTitle = props.toDoTask.title;
-      const dto = new ToDoTaskDTO(newTitle, isCompleted.value);
-      await tasksState.taskStore.updateEntity(props.toDoTask.id, dto);
+  const debounceFunc = debounce(async () => {
+    optimisticCompletedAt.value = optimisticCompletedAt.value == null ? new Date() : null
+    await updateFunction();
+  }, 300);
 
-      if (newTitle !== oldTitle) {
-        showToast('success', 'Sucesso ao editar!', 'Tarefa editada com sucesso!');
-      }
+  async function updateFunction(newTitle?: string, callback: Function = () => {}) {
+
+    let maybeDisplayToast: Function = () => {}
+    if(newTitle != undefined) {
+      maybeDisplayToast = () => showToast('success', 'Sucesso ao editar!', 'Tarefa editada com sucesso!');
+    } 
+
+    try {
+      const dto = new ToDoTaskDTO(newTitle ?? props.toDoTask.title, isCompleted.value);
+      await tasksState.taskStore.updateEntity(props.toDoTask.id, dto);
+      maybeDisplayToast()
     } catch (e) {
       isCompleted.value = props.toDoTask.completedAt !== null;
       if (e instanceof Error) {
@@ -98,14 +103,11 @@
         showToast('error', 'Erro desconhecido', 'Ocorreu um erro inesperado.');
       }
     } finally {
-      if (callback) {
-        callback();
+      if(callback instanceof Function){
+        await callback(); 
       }
     }
-  },
-  300 // 300 milliseconds delay
-);
-
+  } 
 
   async function handleDeleteRequest(didUserConfirm: boolean) {
     try {
@@ -121,7 +123,4 @@
     }
   }
 
-function debounce(arg0: (newTitle: string | undefined, callback: any) => Promise<void>, arg1: number) {
-  throw new Error('Function not implemented.');
-}
 </script>
