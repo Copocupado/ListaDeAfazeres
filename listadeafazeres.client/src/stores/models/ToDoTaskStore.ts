@@ -10,7 +10,6 @@ export class ToDoTaskStore extends BaseStoreModel<ToDoTaskModel, ToDoTaskDTO, nu
       (data: any) => new ToDoTaskModel(data.id, data.title, data.createdAt, data.completedAt),
     );
   }
-  // computed entities applies filtering and sorting to listToDisplayToUser
   protected defaultSortingFunction(items: ToDoTaskModel[]): ToDoTaskModel[] {
     return items.sort((a, b) => {
       const dateA = new Date(a.createdAt).getTime();
