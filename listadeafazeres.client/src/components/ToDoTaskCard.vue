@@ -34,7 +34,7 @@
         </div>
         <div class="col-span-4 flex justify-end">
           <!-- Atualiza a tarefa imediatamente ao alterar o checkbox -->
-          <Checkbox v-model="isCompleted" binary size="large" @change="() => updateTask()" />
+          <Checkbox v-model="isCompleted" binary size="large" @change="() => debouncedUpdateTask()" />
         </div>
       </div>
     </template>
@@ -45,7 +45,7 @@
   <InsertOrEditTask :show-dialog="showEditTaskDialog"
                     :initial-title="toDoTask.title"
                     @dialog-close="showEditTaskDialog = false"
-                    @dialog-confirmed="updateTask" />
+                    @dialog-confirmed="() => debouncedUpdateTask" />
 </template>
 
 <script setup lang="ts">
@@ -78,12 +78,14 @@
 
   const isCompleted = ref(props.toDoTask.completedAt !== null);
 
-  function updateTask(newTitle: string = props.toDoTask.title, callback?: () => void) {
+  const debouncedUpdateTask = debounce(
+  async (...args) => {
+    const [newTitle = props.toDoTask.title, callback] = args;
     try {
-      optimisticCompletedAt.value = new Date()
+      optimisticCompletedAt.value = new Date();
       const oldTitle = props.toDoTask.title;
       const dto = new ToDoTaskDTO(newTitle, isCompleted.value);
-      tasksState.taskStore.updateEntity(props.toDoTask.id, dto);
+      await tasksState.taskStore.updateEntity(props.toDoTask.id, dto);
 
       if (newTitle !== oldTitle) {
         showToast('success', 'Sucesso ao editar!', 'Tarefa editada com sucesso!');
@@ -100,7 +102,10 @@
         callback();
       }
     }
-  }
+  },
+  300 // 300 milliseconds delay
+);
+
 
   async function handleDeleteRequest(didUserConfirm: boolean) {
     try {
@@ -115,4 +120,8 @@
       }
     }
   }
+
+function debounce(arg0: (newTitle: string | undefined, callback: any) => Promise<void>, arg1: number) {
+  throw new Error('Function not implemented.');
+}
 </script>

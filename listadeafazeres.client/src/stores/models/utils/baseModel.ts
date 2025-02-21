@@ -16,7 +16,6 @@
 import { ApiServices } from "@/models/utils/services/apiServices";
 import type { FilterCriteria } from "@/models/utils/services/filterService";
 import type { SortCriteria } from "@/models/utils/services/sortServices";
-import debounce from "lodash/debounce";
 
 export abstract class BaseStoreModel<Model, DTO, IdType> {
   // Serviço responsável pelas requisições à API.
@@ -62,32 +61,20 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
    * Função genérica de debounce para atrasar a execução de funções assíncronas.
    * Se a função for chamada repetidamente dentro do período de delay, apenas a última chamada será executada.
    */
-  private async debounce<T extends (...args: any[]) => Promise<any>>(
-    fn: T,
-    delay: number,
-  ): Promise<T> {
-    return debounce(fn, delay) as unknown as T;
-  }
 
   /**
    * Método auxiliar para executar uma ação com rollback do estado em caso de erro.
    * Recebe o estado atual como backup e, se a ação falhar, restaura o estado.
    */
-  private async executeWithRollback<T>(
-    action: () => Promise<T>,
-    backup: {
-      mainRepository: Map<IdType, Model>;
-      localRepository: Model[];
-      totalNumberOfEntities: number;
-    },
-  ): Promise<T> {
+  private async executeWithRollback<T>(action: () => Promise<T>): Promise<T> {
+    const oldLocalRepository = [...this.localRepository];
+    const totalNumberOfEntities = this.totalNumberOfEntities;
+    console.log("func called");
     try {
       return await action();
     } catch (e) {
-      // Restaura o estado anterior em caso de erro.
-      this.mainRepository = backup.mainRepository;
-      this.localRepository = backup.localRepository;
-      this.totalNumberOfEntities = backup.totalNumberOfEntities;
+      this.localRepository = oldLocalRepository;
+      this.totalNumberOfEntities = totalNumberOfEntities;
       throw e;
     }
   }
@@ -96,22 +83,6 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
    * Método auxiliar que aplica debounce **aos chamados de API** com rollback.
    * Somente a última chamada durante o delay será efetivada.
    */
-  private async debouncedExecuteWithRollback<T>(
-    action: () => Promise<T>,
-    backup: {
-      mainRepository: Map<IdType, Model>;
-      localRepository: Model[];
-      totalNumberOfEntities: number;
-    },
-    delay: number = 1000,
-  ): Promise<T> {
-    // Cria uma versão debounced da função de execução com rollback.
-    const debouncedAction = await this.debounce(
-      () => this.executeWithRollback(action, backup),
-      delay,
-    );
-    return await debouncedAction();
-  }
 
   // Atualiza a lista pública de entidades aplicando filtros e ordenações no repositório local.
   private async setEntities() {
@@ -204,30 +175,18 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
 
   // Adiciona uma nova entidade com atualização otimista, debouncing aplicado ao chamado de API e rollback em caso de erro.
   async addEntity(dto: DTO) {
-    const backup = {
-      mainRepository: new Map(this.mainRepository),
-      localRepository: [...this.localRepository],
-      totalNumberOfEntities: this.totalNumberOfEntities,
-    };
-
-    await this.debouncedExecuteWithRollback(async () => {
+    await this.executeWithRollback(async () => {
       const newEntity = await this.apiServices.create(dto);
       const id = this.getModelsId(newEntity);
       this.mainRepository.set(id, newEntity);
       this.totalNumberOfEntities += 1;
       this.updateListToDisplay();
-    }, backup);
+    });
   }
 
   // Atualiza uma entidade existente com atualização otimista, debouncing aplicado ao chamado de API e rollback em caso de erro.
   async updateEntity(id: IdType, dto: DTO) {
-    const backup = {
-      mainRepository: new Map(this.mainRepository),
-      localRepository: [...this.localRepository],
-      totalNumberOfEntities: this.totalNumberOfEntities,
-    };
-
-    await this.debouncedExecuteWithRollback(async () => {
+    await this.executeWithRollback(async () => {
       const updatedEntity = await this.apiServices.update(id, dto);
       if (this.mainRepository.has(id)) {
         this.mainRepository.set(id, updatedEntity);
@@ -235,38 +194,26 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
       } else {
         throw new Error(`Entity with id ${id} not found in the repository.`);
       }
-    }, backup);
+    });
   }
 
   // Remove uma entidade pelo ID com atualização otimista, debouncing aplicado ao chamado de API e rollback em caso de erro.
   async removeEntity(id: IdType) {
-    const backup = {
-      mainRepository: new Map(this.mainRepository),
-      localRepository: [...this.localRepository],
-      totalNumberOfEntities: this.totalNumberOfEntities,
-    };
-
-    await this.debouncedExecuteWithRollback(async () => {
+    await this.executeWithRollback(async () => {
       await this.apiServices.delete(id);
       this.mainRepository.delete(id);
       this.totalNumberOfEntities -= 1;
       this.updateListToDisplay();
-    }, backup);
+    });
   }
 
   // Busca uma entidade pelo ID e atualiza o repositório, com debouncing aplicado ao chamado de API e rollback em caso de erro.
   async getEntity(id: IdType) {
-    const backup = {
-      mainRepository: new Map(this.mainRepository),
-      localRepository: [...this.localRepository],
-      totalNumberOfEntities: this.totalNumberOfEntities,
-    };
-
-    await this.debouncedExecuteWithRollback(async () => {
+    await this.executeWithRollback(async () => {
       const entity = await this.apiServices.read(id);
       this.mainRepository.set(this.getModelsId(entity), entity);
       this.updateListToDisplay();
-    }, backup);
+    });
   }
 
   // Aplica filtros aos dados e atualiza a lista a ser exibida (não aplica debounce aqui, pois não é um chamado de API).

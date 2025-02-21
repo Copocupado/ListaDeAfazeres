@@ -32,7 +32,6 @@ class ApiServices<Model, DTO, IdType> {
         ? `${this.apiPath}/${apiParameters.urlParams}`
         : this.apiPath;
 
-      console.log(finalApiUrl);
       const finalOptions = apiParameters?.options;
 
       const response = await fetch(finalApiUrl, finalOptions);
