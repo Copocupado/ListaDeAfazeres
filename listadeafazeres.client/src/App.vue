@@ -28,13 +28,23 @@
         :to-do-task="item"
       />
     </div>
-    <Paginator class="!bg-inherit mt-10" :rows="5" :totalRecords="tasksState.totalRecords" :rowsPerPageOptions="getRowsPerPage" @page="onPageChange"></Paginator>
+    <div
+      class="sticky bottom-0 z-50 transition-transform duration-300 ease-in-out"
+      :class="isPaginationVisible ? 'translate-y-0' : 'translate-y-full'"
+    >
+      <Paginator 
+        :rows="5" 
+        :totalRecords="tasksState.totalRecords" 
+        :rowsPerPageOptions="getRowsPerPage" 
+        @page="onPageChange"
+      />
+    </div>
   </div>
 
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, ref } from 'vue';
+import { onMounted, computed, ref, onBeforeUnmount } from 'vue';
 import { useToDoTaskState } from '@/stores/ToDoTaskState';
 
 import ToDoTaskCard from './components/ToDoTaskCard.vue';
@@ -45,16 +55,6 @@ import type { PageState } from 'primevue';
 const tasksState = useToDoTaskState();
 
 const fetchingTasks = ref(false)
-onMounted(async () => {
-  try {
-    fetchingTasks.value = true
-    await tasksState.taskStore.showPartiallyAvailableEntitiesInMainRepository(0, 5);
-  } catch (error) {
-    showToast('error', 'Erro ao buscar suas tarefas!', error)
-  } finally {
-    fetchingTasks.value = false
-  }
-});
 
 async function onPageChange(pageState: PageState){
   await tasksState.taskStore.showPartiallyAvailableEntitiesInMainRepository(pageState.page, pageState.rows);
@@ -67,6 +67,33 @@ const getRowsPerPage = computed(()=> {
   }
   return arr;
 })
+
+const isPaginationVisible = ref(false); 
+let lastScrollPositionPagination = 0;
+
+function handlePaginationScroll() {
+  const currentScroll = window.scrollY || document.documentElement.scrollTop;
+
+  isPaginationVisible.value = currentScroll > lastScrollPositionPagination;
+  lastScrollPositionPagination = currentScroll;
+}
+
+onMounted(async () => {
+  window.addEventListener('scroll', handlePaginationScroll);
+  
+  try {
+    fetchingTasks.value = true;
+    await tasksState.taskStore.showPartiallyAvailableEntitiesInMainRepository(0, 5);
+  } catch (error) {
+    showToast('error', 'Erro ao buscar suas tarefas!', error);
+  } finally {
+    fetchingTasks.value = false;
+  }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handlePaginationScroll);
+});
 
 
 </script>

@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import { ToDoTaskStore } from "./models/ToDoTaskStore";
 
-
 export const useToDoTaskState = defineStore("toDoTask", {
   state: () => ({ taskStore: new ToDoTaskStore() }),
   getters: {

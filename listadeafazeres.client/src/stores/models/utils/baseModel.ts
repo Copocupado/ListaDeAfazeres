@@ -16,6 +16,7 @@
 import { ApiServices } from "@/models/utils/services/apiServices";
 import type { FilterCriteria } from "@/models/utils/services/filterService";
 import type { SortCriteria } from "@/models/utils/services/sortServices";
+import { toInteger } from "lodash";
 
 export abstract class BaseStoreModel<Model, DTO, IdType> {
   // Serviço responsável pelas requisições à API.
@@ -24,7 +25,7 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
   private isFirstQuery = true;
 
   // Repositório principal para armazenar todas as entidades, evitando duplicações.
-  private mainRepository: Map<IdType, Model> = new Map();
+  private mainRepository: Map<number, Model[]> = new Map();
 
   // Repositório local para armazenar apenas os dados da página atual.
   private localRepository: Model[] = [];
@@ -69,7 +70,6 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
   private async executeWithRollback<T>(action: () => Promise<T>): Promise<T> {
     const oldLocalRepository = [...this.localRepository];
     const totalNumberOfEntities = this.totalNumberOfEntities;
-    console.log("func called");
     try {
       return await action();
     } catch (e) {
@@ -91,7 +91,7 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
     // realiza nova busca para preencher a página.
     if (
       this.localRepository.length < this.pageSize &&
-      this.mainRepository.size < this.totalNumberOfEntities
+      this.currentPage != Math.trunc(this.totalNumberOfEntities / this.pageSize)
     ) {
       await this.showPartiallyAvailableEntitiesInMainRepository();
       return;
@@ -100,13 +100,7 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
 
   // Atualiza o repositório local com base na paginação e atualiza a lista de entidades a exibir.
   private updateListToDisplay() {
-    // Converte o repositório principal (Map) em array.
-    const repoArray = Array.from(this.mainRepository.values());
-    // Ordena o array usando a função de ordenação padrão.
-    const sortedRepo = this.defaultSortingFunction(repoArray);
-    // Seleciona a página atual com base nos índices calculados.
-    this.localRepository = sortedRepo.slice(this.startAt, this.endAt);
-    // Atualiza a lista de entidades a serem exibidas.
+    this.localRepository = this.mainRepository.get(this.currentPage) ?? []; // Atualiza a lista de entidades a serem exibidas.
     this.setEntities();
   }
 
@@ -118,9 +112,9 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
         this.mainRepository.size < this.totalNumberOfEntities ||
         (this.mainRepository.size === 0 && this.totalNumberOfEntities === 0)
       ) {
-        const fetched = await this.apiServices.fetchAll();
+        const fetched: Model[] = await this.apiServices.fetchAll();
         // Armazena as entidades no repositório principal utilizando o ID como chave.
-        this.mainRepository = new Map(fetched.map((item) => [this.getModelsId(item), item]));
+        this.mainRepository = new Map<number, Model[]>([[1, fetched]]);
       }
       // Inicializa a paginação: define a página 1 e o tamanho da página igual ao total de entidades carregadas.
       this.currentPage = 1;
@@ -131,12 +125,20 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
     }
   }
 
-  // Getters para cálculo dos índices de paginação.
-  private get startAt(): number {
-    return this.currentPage * this.pageSize;
-  }
-  private get endAt(): number {
-    return this.startAt + this.pageSize;
+  private changeMainRepositoryPageBinding(oldPageSize: number, newPageSize: number): void {
+    if (oldPageSize <= 0) {
+      console.error("O tamanho antigo da página deve ser maior que zero.");
+      return;
+    }
+
+    const allItems = Array.from(this.mainRepository.values()).flat();
+
+    const newMap = new Map<number, Model[]>();
+    for (let i = 0, pageIndex = 0; i < allItems.length; i += newPageSize, pageIndex++) {
+      newMap.set(pageIndex, allItems.slice(i, i + newPageSize));
+    }
+
+    this.mainRepository = newMap;
   }
 
   // Busca entidades de forma paginada, completando o repositório principal se necessário.
@@ -144,14 +146,15 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
     currentPage?: number,
     pageSize?: number,
   ) {
+    if (this.pageSize != pageSize) {
+      this.changeMainRepositoryPageBinding(this.pageSize, pageSize ?? 5);
+    }
     // Atualiza os parâmetros de paginação, se fornecidos.
     this.pageSize = pageSize ?? this.pageSize;
     this.currentPage = currentPage ?? this.currentPage;
 
     // Atualiza o repositório local com a página atual dos dados ordenados.
-    const repoArray = Array.from(this.mainRepository.values());
-    const sortedRepo = this.defaultSortingFunction(repoArray);
-    this.localRepository = sortedRepo.slice(this.startAt, this.endAt);
+    this.localRepository = this.mainRepository.get(this.currentPage) ?? [];
 
     // Se os itens na página forem insuficientes, tenta buscar mais dados da API.
     if (this.localRepository.length < this.pageSize) {
@@ -164,54 +167,69 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
         if (pagedResult == null) return;
         this.totalNumberOfEntities = pagedResult.totalCount;
         // Adiciona os novos itens ao repositório principal.
-        pagedResult.items.forEach((item) => {
-          const id = this.getModelsId(item);
-          this.mainRepository.set(id, item);
-        });
+        this.mainRepository.set(this.currentPage, pagedResult.items);
+        console.log(this.mainRepository.size);
       }
     }
     this.updateListToDisplay();
+    console.log(
+      `Main repo size: ${this.mainRepository.size} when queried with the parameters: page: ${this.currentPage + 1}, page size: ${this.pageSize}`,
+    );
   }
 
-  // Adiciona uma nova entidade com atualização otimista, debouncing aplicado ao chamado de API e rollback em caso de erro.
+  // ────────────────────────────── CRUD OPERATIONS ──────────────────────────────
+
+  // Create a new entity and add it to the current page.
   async addEntity(dto: DTO) {
     await this.executeWithRollback(async () => {
       const newEntity = await this.apiServices.create(dto);
-      const id = this.getModelsId(newEntity);
-      this.mainRepository.set(id, newEntity);
-      this.totalNumberOfEntities += 1;
+      const pageItems = this.mainRepository.get(1) || [];
+      this.mainRepository.set(0, [...pageItems, newEntity]);
+      this.totalNumberOfEntities++;
+      this.changeMainRepositoryPageBinding(this.pageSize, this.pageSize);
       this.updateListToDisplay();
     });
   }
 
-  // Atualiza uma entidade existente com atualização otimista, debouncing aplicado ao chamado de API e rollback em caso de erro.
+  // Update an existing entity on the current page.
   async updateEntity(id: IdType, dto: DTO) {
     await this.executeWithRollback(async () => {
       const updatedEntity = await this.apiServices.update(id, dto);
-      if (this.mainRepository.has(id)) {
-        this.mainRepository.set(id, updatedEntity);
-        this.updateListToDisplay();
-      } else {
-        throw new Error(`Entity with id ${id} not found in the repository.`);
-      }
-    });
-  }
-
-  // Remove uma entidade pelo ID com atualização otimista, debouncing aplicado ao chamado de API e rollback em caso de erro.
-  async removeEntity(id: IdType) {
-    await this.executeWithRollback(async () => {
-      await this.apiServices.delete(id);
-      this.mainRepository.delete(id);
-      this.totalNumberOfEntities -= 1;
+      const pageItems = this.mainRepository.get(this.currentPage) || [];
+      this.mainRepository.set(
+        this.currentPage,
+        pageItems.map((model) => (this.getModelsId(model) === id ? updatedEntity : model)),
+      );
       this.updateListToDisplay();
     });
   }
 
-  // Busca uma entidade pelo ID e atualiza o repositório, com debouncing aplicado ao chamado de API e rollback em caso de erro.
+  // Remove an entity from the current page.
+  async removeEntity(id: IdType) {
+    await this.executeWithRollback(async () => {
+      await this.apiServices.delete(id);
+      const pageItems = this.mainRepository.get(this.currentPage) || [];
+      this.mainRepository.set(
+        this.currentPage,
+        pageItems.filter((model) => this.getModelsId(model) !== id),
+      );
+      this.totalNumberOfEntities--;
+      this.changeMainRepositoryPageBinding(this.pageSize, this.pageSize);
+      this.updateListToDisplay();
+    });
+  }
+
+  // Retrieve a single entity by id and update the current page accordingly.
   async getEntity(id: IdType) {
     await this.executeWithRollback(async () => {
       const entity = await this.apiServices.read(id);
-      this.mainRepository.set(this.getModelsId(entity), entity);
+      const pageItems = this.mainRepository.get(this.currentPage) || [];
+      // Replace any existing model with the same id or add the entity if not present.
+      const updatedPageItems = [
+        ...pageItems.filter((model) => this.getModelsId(model) !== id),
+        entity,
+      ];
+      this.mainRepository.set(this.currentPage, updatedPageItems);
       this.updateListToDisplay();
     });
   }
