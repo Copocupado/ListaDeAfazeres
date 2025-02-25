@@ -168,13 +168,9 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
         this.totalNumberOfEntities = pagedResult.totalCount;
         // Adiciona os novos itens ao repositório principal.
         this.mainRepository.set(this.currentPage, pagedResult.items);
-        console.log(this.mainRepository.size);
       }
     }
     this.updateListToDisplay();
-    console.log(
-      `Main repo size: ${this.mainRepository.size} when queried with the parameters: page: ${this.currentPage + 1}, page size: ${this.pageSize}`,
-    );
   }
 
   // ────────────────────────────── CRUD OPERATIONS ──────────────────────────────

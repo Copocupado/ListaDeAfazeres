@@ -6,7 +6,7 @@
   style="background-color: var(--p-content-background)">
     <Menubar class="!border-none !bg-inherit">
       <template #start>
-        <div class="flex flex-col !m-10 gap-4">
+        <div class="flex flex-col gap-4 sm:!m-4 md:!m-10">
           <div class="text-5xl subpixel-antialiased font-bold" style="color: var(--p-primary-color)">
             Lista de Afazeres
           </div>
@@ -27,7 +27,7 @@
         </div>
       </template>
       <template #end>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 sm:!m-4 md:!m-10">
           <Button
             size="large"
             rounded
@@ -65,6 +65,12 @@ const tasksState = useToDoTaskState();
 const isFilterApplied = ref(false);
 const isSortApplied = ref(false);
 const showCreateDialog = ref(false);
+
+async function createDummyData() {
+  for (let index = 0; index < 10000; index++) {
+    await tasksState.taskStore.addEntity(new ToDoTaskDTO(`${index + 1000}`, false))
+  }
+}
 
 
 async function createTask(newTitle: string, callback?: () => void) {

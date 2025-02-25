@@ -35,6 +35,7 @@ class ApiServices<Model, DTO, IdType> {
       const finalOptions = apiParameters?.options;
 
       const response = await fetch(finalApiUrl, finalOptions);
+      console.log("Made call to database");
 
       if (!response.ok) {
         const errorText = await response.text();

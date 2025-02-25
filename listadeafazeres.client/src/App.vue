@@ -1,5 +1,6 @@
 <template>
   <Toast 
+  position="bottom-left"
   :close-button-props="{
     style: {
         fontSize: '0.75rem', 

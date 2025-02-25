@@ -96,7 +96,6 @@ async function onSubmit({ valid }: { valid: boolean }) {
 }
 
 function handleClose() {
-  console.log('dialog closed')
   isLoading.value = false;
   emit('dialogClose');
 }
