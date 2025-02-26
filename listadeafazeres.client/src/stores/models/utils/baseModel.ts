@@ -16,7 +16,6 @@
 import { ApiServices } from "@/models/utils/services/apiServices";
 import type { FilterCriteria } from "@/models/utils/services/filterService";
 import type { SortCriteria } from "@/models/utils/services/sortServices";
-import { toInteger } from "lodash";
 
 export abstract class BaseStoreModel<Model, DTO, IdType> {
   // Serviço responsável pelas requisições à API.
@@ -177,10 +176,11 @@ export abstract class BaseStoreModel<Model, DTO, IdType> {
 
   // Create a new entity and add it to the current page.
   async addEntity(dto: DTO) {
+    console.log("a");
     await this.executeWithRollback(async () => {
       const newEntity = await this.apiServices.create(dto);
-      const pageItems = this.mainRepository.get(1) || [];
-      this.mainRepository.set(0, [...pageItems, newEntity]);
+      const pageItems = this.mainRepository.get(0) || [];
+      this.mainRepository.set(0, [newEntity, ...pageItems]);
       this.totalNumberOfEntities++;
       this.changeMainRepositoryPageBinding(this.pageSize, this.pageSize);
       this.updateListToDisplay();

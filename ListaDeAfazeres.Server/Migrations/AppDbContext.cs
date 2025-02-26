@@ -27,6 +27,7 @@ namespace ListaDeAfazeres.Server.Migrations
             // *** ToDoTask *** //
 
             modelBuilder.Entity<ToDoTaskModel>()
+                .ToTable("ToDoTasks")
                 .HasIndex(t => t.Title)
                 .IsUnique(); // index que evita duplicação de tarefas com o exato mesmo título
 

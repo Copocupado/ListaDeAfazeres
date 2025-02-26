@@ -47,7 +47,7 @@ namespace ListaDeAfazeres.Server.Migrations
                     b.HasIndex("Title")
                         .IsUnique();
 
-                    b.ToTable("ToDoTasks");
+                    b.ToTable("ToDoTasks", (string)null);
                 });
 #pragma warning restore 612, 618
         }

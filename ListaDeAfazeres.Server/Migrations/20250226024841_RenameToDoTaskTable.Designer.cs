@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ListaDeAfazeres.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250219060913_modelsUpdate")]
-    partial class modelsUpdate
+    [Migration("20250226024841_RenameToDoTaskTable")]
+    partial class RenameToDoTaskTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,7 +50,7 @@ namespace ListaDeAfazeres.Server.Migrations
                     b.HasIndex("Title")
                         .IsUnique();
 
-                    b.ToTable("ToDoTasks");
+                    b.ToTable("ToDoTasks", (string)null);
                 });
 #pragma warning restore 612, 618
         }
